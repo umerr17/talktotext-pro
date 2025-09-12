@@ -9,11 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { MeetingSummary } from "@/components/meeting/meeting-summary";
 import { TranscriptViewer } from "@/components/meeting/transcript-viewer";
-import { ArrowLeft, Download, Share, FileText, MessageSquare } from "lucide-react";
-import { getMeetingDetails, Meeting as MeetingData } from "@/lib/api"; // Updated import
+import { ArrowLeft, Download, FileText, MessageSquare } from "lucide-react";
+import { getMeetingDetails, Meeting as MeetingData } from "@/lib/api";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import { Document, Packer, Paragraph, HeadingLevel } from "docx";
 import { saveAs } from "file-saver";
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -41,56 +41,40 @@ const parseMeetingNotes = (meeting: MeetingData): ParsedNotes => {
         actionItems: [],
         decisions: [],
         sentiment: { overall: 'neutral', score: 0, insights: [] },
-        participants: [], // In a real app, this would come from the backend
-        duration: "N/A" // This would also come from backend metadata
+        participants: [],
+        duration: "N/A"
     };
 
     let currentSection = '';
 
     for (const line of lines) {
-        if (line.match(/^#+\s*Executive Summary/i)) {
-            currentSection = 'summary';
-        } else if (line.match(/^#+\s*Key Discussion Points/i)) {
-            currentSection = 'keyPoints';
-        } else if (line.match(/^#+\s*Decisions Made/i)) {
-            currentSection = 'decisions';
-        } else if (line.match(/^#+\s*Action Items/i)) {
-            currentSection = 'actionItems';
-        } else if (line.match(/^#+\s*Sentiment Analysis/i)) {
-            currentSection = 'sentiment';
-        } else {
+        if (line.match(/^#+\s*Executive Summary/i)) { currentSection = 'summary'; }
+        else if (line.match(/^#+\s*Key Discussion Points/i)) { currentSection = 'keyPoints'; }
+        else if (line.match(/^#+\s*Decisions Made/i)) { currentSection = 'decisions'; }
+        else if (line.match(/^#+\s*Action Items/i)) { currentSection = 'actionItems'; }
+        else if (line.match(/^#+\s*Sentiment Analysis/i)) { currentSection = 'sentiment'; }
+        else {
             const cleanLine = line.replace(/^-|\*|\d+\.\s*/, '').trim();
             if (!cleanLine) continue;
 
             switch (currentSection) {
-                case 'summary':
-                    parsed.summary = (parsed.summary || "") + cleanLine + " ";
-                    break;
-                case 'keyPoints':
-                    parsed.keyPoints?.push(cleanLine);
-                    break;
-                case 'decisions':
-                    parsed.decisions?.push(cleanLine);
-                    break;
-                case 'actionItems':
-                    parsed.actionItems?.push({ id: Math.random().toString(), task: cleanLine, assignee: 'Unassigned', dueDate: 'N/A', priority: 'medium' });
-                    break;
+                case 'summary': parsed.summary = (parsed.summary || "") + cleanLine + " "; break;
+                case 'keyPoints': parsed.keyPoints?.push(cleanLine); break;
+                case 'decisions': parsed.decisions?.push(cleanLine); break;
+                case 'actionItems': parsed.actionItems?.push({ id: Math.random().toString(), task: cleanLine, assignee: 'Unassigned', dueDate: 'N/A', priority: 'medium' }); break;
                 case 'sentiment':
                      if (cleanLine.toLowerCase().includes('positive')) parsed.sentiment!.overall = 'positive';
-                     if (cleanLine.toLowerCase().includes('neutral')) parsed.sentiment!.overall = 'neutral';
-                     if (cleanLine.toLowerCase().includes('negative')) parsed.sentiment!.overall = 'negative';
+                     else if (cleanLine.toLowerCase().includes('neutral')) parsed.sentiment!.overall = 'neutral';
+                     else if (cleanLine.toLowerCase().includes('negative')) parsed.sentiment!.overall = 'negative';
                      parsed.sentiment!.insights.push(cleanLine);
                     break;
             }
         }
     }
     
-    parsed.title = lines[0]?.replace(/^#+\s*/, '').trim() || 'Meeting Notes';
-    if(parsed.title === "Executive Summary") parsed.title = "Meeting Notes";
-
+    parsed.title = meeting.title || 'Meeting Notes';
     parsed.id = meeting.id.toString();
     parsed.date = new Date(meeting.created_at).toISOString();
-
     return parsed as ParsedNotes;
 };
 
@@ -98,13 +82,13 @@ const parseMeetingNotes = (meeting: MeetingData): ParsedNotes => {
 export default function MeetingDetailsPage() {
   const params = useParams();
   const id = params.id as string;
-  const summaryContentRef = useRef<HTMLDivElement>(null);
+  const pdfExportRef = useRef<HTMLDivElement>(null); // Ref for the hidden print-friendly version
 
   const [meeting, setMeeting] = useState<MeetingData | null>(null);
   const [parsedNotes, setParsedNotes] = useState<ParsedNotes | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  
   useEffect(() => {
     if (id) {
       const fetchMeeting = async () => {
@@ -127,9 +111,12 @@ export default function MeetingDetailsPage() {
   }, [id]);
 
   const exportToPdf = () => {
-    const input = summaryContentRef.current;
+    const input = pdfExportRef.current;
     if (input) {
-      html2canvas(input, { scale: 2, backgroundColor: null }).then((canvas) => {
+      html2canvas(input, { 
+        scale: 2, 
+        backgroundColor: '#ffffff' // Use a solid white background for reliability
+      }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
         const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -142,14 +129,12 @@ export default function MeetingDetailsPage() {
 
   const exportToWord = () => {
       if (!parsedNotes) return;
-      
       const doc = new Document({
           sections: [{
               children: [
                   new Paragraph({ text: parsedNotes.title, heading: HeadingLevel.TITLE }),
                   new Paragraph({ text: `Date: ${new Date(parsedNotes.date).toLocaleDateString()}`, heading: HeadingLevel.HEADING_3 }),
                   new Paragraph({ text: "Executive Summary", heading: HeadingLevel.HEADING_1 }),
-                  // **FIXED HERE**: Wrapped the string in an object { text: ... }
                   new Paragraph({ text: parsedNotes.summary }),
                   new Paragraph({ text: "Key Discussion Points", heading: HeadingLevel.HEADING_1 }),
                   ...parsedNotes.keyPoints.map(p => new Paragraph({ text: p, bullet: { level: 0 } })),
@@ -160,7 +145,6 @@ export default function MeetingDetailsPage() {
               ],
           }],
       });
-
       Packer.toBlob(doc).then(blob => {
           saveAs(blob, `${parsedNotes.title || 'meeting-notes'}.docx`);
       });
@@ -184,7 +168,6 @@ export default function MeetingDetailsPage() {
     return <div className="text-center py-20 text-destructive">{error}</div>;
   }
 
-  // **FIXED HERE**: Only render the main content if data is available
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -202,7 +185,7 @@ export default function MeetingDetailsPage() {
                     <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                        <Link href="/dashboard">Dashboard</Link>
+                         <Link href="/dashboard">Dashboard</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
@@ -234,7 +217,6 @@ export default function MeetingDetailsPage() {
       </header>
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* **FIXED HERE**: Conditional rendering based on data availability */}
         {parsedNotes && meeting && (
             <Tabs defaultValue="summary" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 max-w-md">
@@ -249,8 +231,7 @@ export default function MeetingDetailsPage() {
             </TabsList>
 
             <TabsContent value="summary" className="space-y-6">
-                {/* Pass a ref to the container for html2canvas to capture */}
-                <div ref={summaryContentRef} className="space-y-6 bg-background p-1">
+                <div className="space-y-6 bg-background p-1">
                     <MeetingSummary meeting={parsedNotes} />
                 </div>
             </TabsContent>
@@ -261,6 +242,36 @@ export default function MeetingDetailsPage() {
             </Tabs>
         )}
       </main>
+
+      {/* --- NEW: Clean, hidden div for reliable PDF export --- */}
+      {parsedNotes && (
+        <div 
+          ref={pdfExportRef}
+          className="absolute top-0 left-[-9999px] p-12 bg-white text-black w-[210mm] text-base"
+          style={{ fontFamily: 'Arial, sans-serif' }}
+        >
+          <h1 style={{ fontSize: '26px', fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: '12px', marginBottom: '20px' }}>{parsedNotes.title}</h1>
+          <p style={{ marginBottom: '24px', fontStyle: 'italic', color: '#555' }}>Date: {new Date(parsedNotes.date).toLocaleDateString()}</p>
+          
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Executive Summary</h2>
+          <p style={{ lineHeight: '1.6' }}>{parsedNotes.summary}</p>
+          
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Key Discussion Points</h2>
+          <ul style={{ paddingLeft: '20px', listStyleType: 'disc' }}>
+            {parsedNotes.keyPoints.map((point, i) => <li key={i} style={{ marginBottom: '8px', lineHeight: '1.6' }}>{point}</li>)}
+          </ul>
+          
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Decisions Made</h2>
+          <ul style={{ paddingLeft: '20px', listStyleType: 'disc' }}>
+            {parsedNotes.decisions.map((decision, i) => <li key={i} style={{ marginBottom: '8px', lineHeight: '1.6' }}>{decision}</li>)}
+          </ul>
+          
+          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Action Items</h2>
+          <ul style={{ paddingLeft: '20px', listStyleType: 'disc' }}>
+            {parsedNotes.actionItems.map((item, i) => <li key={i} style={{ marginBottom: '8px', lineHeight: '1.6' }}>{item.task}</li>)}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
