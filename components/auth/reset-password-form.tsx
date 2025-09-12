@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -12,7 +10,7 @@ import { ArrowLeft, AlertCircle, CheckCircle, Eye, EyeOff, Check } from "lucide-
 import { motion } from "framer-motion"
 import { resetPassword } from "@/lib/api"
 import Link from "next/link"
-
+//Just for Push
 function ResetPasswordFormComponent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
