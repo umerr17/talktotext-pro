@@ -35,7 +35,7 @@ export function LoginForm() {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
-          username: formData.email, // ✅ backend expects "username"
+          username: formData.email,
           password: formData.password,
         }),
       })
@@ -47,7 +47,7 @@ export function LoginForm() {
       }
 
       const data = await res.json()
-      localStorage.setItem("token", data.access_token) // ✅ save JWT
+      localStorage.setItem("token", data.access_token)
       router.push("/dashboard")
     } catch (err) {
       setError("Login failed. Please try again.")
@@ -57,8 +57,7 @@ export function LoginForm() {
   }
 
   const handleOAuthLogin = (provider: string) => {
-    console.log(`Login with ${provider}`)
-    // Keep as demo
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/login/${provider}`;
   }
 
   return (
@@ -150,30 +149,22 @@ export function LoginForm() {
               <Separator className="w-full" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">Or</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              onClick={() => handleOAuthLogin("github")}
-              disabled={isLoading}
-              className="h-10 sm:h-11 text-sm"
-            >
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleOAuthLogin("google")}
-              disabled={isLoading}
-              className="h-10 sm:h-11 text-sm"
-            >
-              <Mail className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-          </div>
+          <div className="w-full">
+  <Button 
+    variant="outline" 
+    onClick={() => handleOAuthLogin("google")} 
+    disabled={isLoading} 
+    className="w-full flex items-center justify-center gap-2"
+  >
+    <Mail className="h-4 w-4" />
+    Continue with Google
+  </Button>
+</div>
+
         </CardContent>
         <CardFooter className="px-4 sm:px-6">
           <p className="text-center text-sm text-muted-foreground w-full">

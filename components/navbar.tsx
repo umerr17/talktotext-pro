@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -32,10 +33,13 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">TT</span>
-              </div>
-              <span className="font-bold text-lg sm:text-xl">TalkToText Pro</span>
+              <Image
+                src="/logo.png"
+                alt="TalkToText Pro"
+                width={200}
+                height={200}
+                className="rounded-lg"
+              />
             </Link>
           </div>
 
@@ -61,21 +65,21 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
             {isLoggedIn ? (
-                <Button asChild>
-                    <Link href="/dashboard">
-                        <LayoutDashboard className="mr-2 h-4 w-4"/>
-                        Go to Dashboard
-                    </Link>
-                </Button>
+              <Button asChild>
+                <Link href="/dashboard">
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Go to Dashboard
+                </Link>
+              </Button>
             ) : (
-                <>
-                    <Button variant="ghost" asChild>
-                      <Link href="/login">Sign In</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href="/signup">Get Started</Link>
-                    </Button>
-                </>
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/signup">Get Started</Link>
+                </Button>
+              </>
             )}
           </div>
 
@@ -93,7 +97,7 @@ export function Navbar() {
                 <div className="flex flex-col space-y-4 mt-8">
                   <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-center space-x-2" onClick={() => setIsOpen(false)}>
-                       <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                         <span className="text-primary-foreground font-bold text-sm">TT</span>
                       </div>
                       <span className="font-bold text-lg">TalkToText Pro</span>
@@ -120,25 +124,25 @@ export function Navbar() {
 
                   <div className="flex flex-col space-y-3 pt-6 border-t border-border/50">
                     {isLoggedIn ? (
-                        <Button asChild className="h-12 text-base">
-                            <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                                <LayoutDashboard className="mr-2 h-4 w-4"/>
-                                Go to Dashboard
-                            </Link>
-                        </Button>
+                      <Button asChild className="h-12 text-base">
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Go to Dashboard
+                        </Link>
+                      </Button>
                     ) : (
-                        <>
-                            <Button variant="ghost" asChild className="justify-start h-12 text-base">
-                              <Link href="/login" onClick={() => setIsOpen(false)}>
-                                Sign In
-                              </Link>
-                            </Button>
-                            <Button asChild className="h-12 text-base">
-                              <Link href="/signup" onClick={() => setIsOpen(false)}>
-                                Get Started
-                              </Link>
-                            </Button>
-                        </>
+                      <>
+                        <Button variant="ghost" asChild className="justify-start h-12 text-base">
+                          <Link href="/login" onClick={() => setIsOpen(false)}>
+                            Sign In
+                          </Link>
+                        </Button>
+                        <Button asChild className="h-12 text-base">
+                          <Link href="/signup" onClick={() => setIsOpen(false)}>
+                            Get Started
+                          </Link>
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>

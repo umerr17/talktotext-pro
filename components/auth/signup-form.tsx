@@ -74,7 +74,7 @@ export function SignupForm() {
         body: JSON.stringify({
           username: formData.email,
           password: formData.password,
-          full_name: formData.name, // <-- Sending full name
+          full_name: formData.name,
         }),
       })
 
@@ -84,8 +84,7 @@ export function SignupForm() {
         return
       }
 
-      // redirect to login after successful signup
-      router.push("/login?signup=success")
+      router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError("Account creation failed. Please try again.")
     } finally {
@@ -94,8 +93,7 @@ export function SignupForm() {
   }
 
   const handleOAuthSignup = (provider: string) => {
-    console.log(`Sign up with ${provider}`)
-    // Keep as demo
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/login/${provider}`;
   }
 
   return (
@@ -241,20 +239,22 @@ export function SignupForm() {
               <Separator className="w-full" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">Or</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" onClick={() => handleOAuthSignup("github")} disabled={isLoading}>
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-            <Button variant="outline" onClick={() => handleOAuthSignup("google")} disabled={isLoading}>
-              <Mail className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-          </div>
+          <div className="w-full">
+  <Button 
+    variant="outline" 
+    onClick={() => handleOAuthSignup("google")} 
+    disabled={isLoading} 
+    className="w-full flex items-center justify-center gap-2"
+  >
+    <Mail className="h-4 w-4" />
+    Continue with Google
+  </Button>
+</div>
+
         </CardContent>
         <CardFooter>
           <p className="text-center text-sm text-muted-foreground w-full">

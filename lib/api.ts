@@ -105,11 +105,37 @@ export const uploadAvatar = (file: File): Promise<UserProfile> => {
 export const deleteAccount = (): Promise<void> => authFetch('/profile', { method: 'DELETE' });
 
 // === Auth Functions ===
+export const verifyEmail = async (email: string, code: string): Promise<{ message: string }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+    });
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ detail: "An unknown error occurred" }));
+        throw new Error(errorData.detail || `HTTP error! status: ${res.status}`);
+    }
+    return res.json();
+};
+
 export const forgotPassword = async (email: string): Promise<{ message: string }> => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ detail: "An unknown error occurred" }));
+        throw new Error(errorData.detail || `HTTP error! status: ${res.status}`);
+    }
+    return res.json();
+};
+
+export const resetPassword = async (token: string, password: string): Promise<{ message: string }> => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
     });
     if (!res.ok) {
         const errorData = await res.json().catch(() => ({ detail: "An unknown error occurred" }));
