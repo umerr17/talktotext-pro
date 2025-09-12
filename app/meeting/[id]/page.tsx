@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from "next/link";
 import { notFound, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,6 @@ import { TranscriptViewer } from "@/components/meeting/transcript-viewer";
 import { ArrowLeft, Download, FileText, MessageSquare } from "lucide-react";
 import { getMeetingDetails, Meeting as MeetingData } from "@/lib/api";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
 import { Document, Packer, Paragraph, HeadingLevel } from "docx";
 import { saveAs } from "file-saver";
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,7 +42,6 @@ const parseMeetingNotes = (meeting: MeetingData): ParsedNotes => {
         participants: [],
         duration: "N/A"
     };
-
     let currentSection = '';
 
     for (const line of lines) {
@@ -54,7 +51,8 @@ const parseMeetingNotes = (meeting: MeetingData): ParsedNotes => {
         else if (line.match(/^#+\s*Action Items/i)) { currentSection = 'actionItems'; }
         else if (line.match(/^#+\s*Sentiment Analysis/i)) { currentSection = 'sentiment'; }
         else {
-            const cleanLine = line.replace(/^-|\*|\d+\.\s*/, '').trim();
+            // ** FIX: Remove ALL list markers and asterisks (e.g., **, ***) from the line **
+            const cleanLine = line.replace(/^-|\*|\d+\.\s*/g, '').trim();
             if (!cleanLine) continue;
 
             switch (currentSection) {
@@ -72,23 +70,30 @@ const parseMeetingNotes = (meeting: MeetingData): ParsedNotes => {
         }
     }
     
+    // De-duplicate any repeated sections from AI output
+    if (parsed.keyPoints) parsed.keyPoints = [...new Set(parsed.keyPoints)];
+    if (parsed.decisions) parsed.decisions = [...new Set(parsed.decisions)];
+    if (parsed.actionItems) {
+        const uniqueTasks = new Map();
+        parsed.actionItems.forEach(item => uniqueTasks.set(item.task, item));
+        parsed.actionItems = Array.from(uniqueTasks.values());
+    }
+
     parsed.title = meeting.title || 'Meeting Notes';
     parsed.id = meeting.id.toString();
     parsed.date = new Date(meeting.created_at).toISOString();
     return parsed as ParsedNotes;
 };
 
-
 export default function MeetingDetailsPage() {
   const params = useParams();
   const id = params.id as string;
-  const pdfExportRef = useRef<HTMLDivElement>(null); // Ref for the hidden print-friendly version
 
   const [meeting, setMeeting] = useState<MeetingData | null>(null);
   const [parsedNotes, setParsedNotes] = useState<ParsedNotes | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     if (id) {
       const fetchMeeting = async () => {
@@ -111,20 +116,76 @@ export default function MeetingDetailsPage() {
   }, [id]);
 
   const exportToPdf = () => {
-    const input = pdfExportRef.current;
-    if (input) {
-      html2canvas(input, { 
-        scale: 2, 
-        backgroundColor: '#ffffff' // Use a solid white background for reliability
-      }).then((canvas) => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`${parsedNotes?.title || 'meeting-notes'}.pdf`);
-      });
-    }
+    if (!parsedNotes) return;
+
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 55; // Generous margin
+    const maxLineWidth = pageWidth - margin * 2;
+    let y = margin; // Vertical cursor
+
+    const checkAndAddPage = (elementHeight: number) => {
+        if (y + elementHeight >= pageHeight - margin) {
+            doc.addPage();
+            y = margin;
+        }
+    };
+
+    // --- RENDER DOCUMENT ELEMENTS ---
+
+    // Main Title
+    doc.setFont("helvetica", "bold").setFontSize(22);
+    const titleLines = doc.splitTextToSize(parsedNotes.title, maxLineWidth);
+    const titleHeight = titleLines.length * 22;
+    checkAndAddPage(titleHeight);
+    doc.text(titleLines, pageWidth / 2, y, { align: 'center' });
+    y += titleHeight + 20;
+
+    // Date Subtitle
+    doc.setFont("helvetica", "italic").setFontSize(10);
+    checkAndAddPage(10);
+    doc.text(`Date: ${new Date(parsedNotes.date).toLocaleDateString()}`, margin, y);
+    y += 40;
+
+    // Generic Section Renderer
+    const renderSection = (title: string, content: string | string[]) => {
+      if ((typeof content === 'string' && content.trim()) || (Array.isArray(content) && content.length > 0)) {
+        // Heading
+        doc.setFont("helvetica", "bold").setFontSize(16);
+        checkAndAddPage(16 + 25); // Check for heading + one line of text
+        doc.text(title, margin, y);
+        y += 25;
+
+        // Content
+        doc.setFont("helvetica", "normal").setFontSize(11);
+        if (Array.isArray(content)) {
+          content.forEach(item => {
+              const lines = doc.splitTextToSize(item, maxLineWidth - 20);
+              const itemHeight = (lines.length * 11) * 1.4;
+              checkAndAddPage(itemHeight);
+              doc.text(`•`, margin, y + 1);
+              doc.text(lines, margin + 20, y, { lineHeightFactor: 1.4 });
+              y += itemHeight + 10;
+          });
+        } else {
+          const lines = doc.splitTextToSize(content, maxLineWidth);
+          const textHeight = (lines.length * 11) * 1.5;
+          checkAndAddPage(textHeight);
+          doc.text(lines, margin, y, { lineHeightFactor: 1.5 });
+          y += textHeight + 15;
+        }
+        y += 15; // Space after section
+      }
+    };
+    
+    // --- BUILD THE DOCUMENT ---
+    renderSection('Executive Summary', parsedNotes.summary);
+    renderSection('Key Discussion Points', parsedNotes.keyPoints);
+    renderSection('Decisions Made', parsedNotes.decisions);
+    renderSection('Action Items', parsedNotes.actionItems.map(item => item.task));
+
+    doc.save(`${parsedNotes?.title || 'meeting-notes'}.pdf`);
   };
 
   const exportToWord = () => {
@@ -182,7 +243,7 @@ export default function MeetingDetailsPage() {
               <Separator orientation="vertical" className="h-4" />
               {parsedNotes && (
                 <Breadcrumb>
-                    <BreadcrumbList>
+                   <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
                          <Link href="/dashboard">Dashboard</Link>
@@ -242,36 +303,6 @@ export default function MeetingDetailsPage() {
             </Tabs>
         )}
       </main>
-
-      {/* --- NEW: Clean, hidden div for reliable PDF export --- */}
-      {parsedNotes && (
-        <div 
-          ref={pdfExportRef}
-          className="absolute top-0 left-[-9999px] p-12 bg-white text-black w-[210mm] text-base"
-          style={{ fontFamily: 'Arial, sans-serif' }}
-        >
-          <h1 style={{ fontSize: '26px', fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: '12px', marginBottom: '20px' }}>{parsedNotes.title}</h1>
-          <p style={{ marginBottom: '24px', fontStyle: 'italic', color: '#555' }}>Date: {new Date(parsedNotes.date).toLocaleDateString()}</p>
-          
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Executive Summary</h2>
-          <p style={{ lineHeight: '1.6' }}>{parsedNotes.summary}</p>
-          
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Key Discussion Points</h2>
-          <ul style={{ paddingLeft: '20px', listStyleType: 'disc' }}>
-            {parsedNotes.keyPoints.map((point, i) => <li key={i} style={{ marginBottom: '8px', lineHeight: '1.6' }}>{point}</li>)}
-          </ul>
-          
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Decisions Made</h2>
-          <ul style={{ paddingLeft: '20px', listStyleType: 'disc' }}>
-            {parsedNotes.decisions.map((decision, i) => <li key={i} style={{ marginBottom: '8px', lineHeight: '1.6' }}>{decision}</li>)}
-          </ul>
-          
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '28px', marginBottom: '12px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Action Items</h2>
-          <ul style={{ paddingLeft: '20px', listStyleType: 'disc' }}>
-            {parsedNotes.actionItems.map((item, i) => <li key={i} style={{ marginBottom: '8px', lineHeight: '1.6' }}>{item.task}</li>)}
-          </ul>
-        </div>
-      )}
     </div>
   );
 }
