@@ -1,49 +1,79 @@
 "use client"
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { FileText, Clock, Users, Brain } from "lucide-react"
 import { motion } from "framer-motion"
-
-const stats = [
-  {
-    title: "Total Meetings",
-    value: "24",
-    change: "+12%",
-    changeType: "positive" as const,
-    icon: FileText,
-    description: "This month",
-  },
-  {
-    title: "Hours Processed",
-    value: "18.5",
-    change: "+8%",
-    changeType: "positive" as const,
-    icon: Clock,
-    description: "Total transcription time",
-  },
-  {
-    title: "Team Members",
-    value: "12",
-    change: "+2",
-    changeType: "positive" as const,
-    icon: Users,
-    description: "Active participants",
-  },
-  {
-    title: "Accuracy Rate",
-    value: "98.5%",
-    change: "+0.3%",
-    changeType: "positive" as const,
-    icon: Brain,
-    description: "AI transcription accuracy",
-  },
-]
+import { getDashboardStats, DashboardStats as StatsData } from "@/lib/api"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function DashboardStats() {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await getDashboardStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const statsCards = [
+    {
+      title: "Total Meetings",
+      value: stats?.total_meetings,
+      icon: FileText,
+      description: "Processed successfully",
+    },
+    {
+      title: "Hours Processed",
+      value: stats?.hours_processed,
+      icon: Clock,
+      description: "Total transcription time",
+    },
+    {
+      title: "Team Members",
+      value: stats?.team_members,
+      icon: Users,
+      description: "In your workspace",
+    },
+    {
+      title: "Accuracy Rate",
+      value: stats ? `${stats.accuracy_rate}%` : null,
+      icon: Brain,
+      description: "AI transcription accuracy",
+    },
+  ];
+
+  if (isLoading) {
+      return (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                  <Card key={i} className="glass">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                          <Skeleton className="h-4 w-2/3" />
+                          <Skeleton className="h-4 w-4 rounded-full" />
+                      </CardHeader>
+                      <CardContent>
+                          <Skeleton className="h-7 w-1/3 mb-2" />
+                          <Skeleton className="h-3 w-1/2" />
+                      </CardContent>
+                  </Card>
+              ))}
+          </div>
+      )
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, index) => (
+      {statsCards.map((stat, index) => (
         <motion.div
           key={stat.title}
           initial={{ opacity: 0, y: 20 }}
@@ -56,16 +86,8 @@ export function DashboardStats() {
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                <Badge
-                  variant={stat.changeType === "positive" ? "default" : "secondary"}
-                  className={stat.changeType === "positive" ? "bg-green-500 text-white" : "bg-red-500 text-white"}
-                >
-                  {stat.change}
-                </Badge>
-                <span>{stat.description}</span>
-              </div>
+              <div className="text-2xl font-bold">{stat.value ?? 'N/A'}</div>
+              <p className="text-xs text-muted-foreground">{stat.description}</p>
             </CardContent>
           </Card>
         </motion.div>

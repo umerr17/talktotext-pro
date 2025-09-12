@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -11,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, AlertCircle, CheckCircle, Mail } from "lucide-react"
 import { motion } from "framer-motion"
+import { forgotPassword } from "@/lib/api"
 
 export function ForgotPasswordForm() {
   const [isLoading, setIsLoading] = useState(false)
@@ -29,12 +29,11 @@ export function ForgotPasswordForm() {
       return
     }
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await forgotPassword(email);
       setSuccess(true)
-    } catch (err) {
-      setError("Failed to send reset email. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "Failed to send reset email. Please try again.")
     } finally {
       setIsLoading(false)
     }

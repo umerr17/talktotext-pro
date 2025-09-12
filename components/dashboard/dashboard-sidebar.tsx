@@ -12,10 +12,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { LayoutDashboard, Upload, History, User, Settings, LogOut, ChevronUp } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { LayoutDashboard, Upload, History, User, LogOut } from "lucide-react"
+import { useUser } from "@/context/user-provider"
 
 const navigation = [
   {
@@ -33,20 +35,24 @@ const navigation = [
     url: "/dashboard/history",
     icon: History,
   },
-  {
-    title: "Profile",
-    url: "/profile",
-    icon: User,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
 ]
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const { user, isLoading } = useUser()
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    // Use window.location to force a full page refresh and clear all state
+    window.location.href = "/login";
+  };
+
+  const getInitials = () => {
+    if (!user) return "??";
+    const first = user.first_name?.[0] || '';
+    const last = user.last_name?.[0] || '';
+    return `${first}${last}`.toUpperCase() || user.username[0].toUpperCase();
+  }
 
   return (
     <Sidebar variant="inset">
@@ -77,50 +83,35 @@ export function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        <SidebarSeparator />
         <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src="/placeholder.svg" alt="User" />
-                    <AvatarFallback className="rounded-lg">JD</AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">John Doe</span>
-                    <span className="truncate text-xs">john@example.com</span>
-                  </div>
-                  <ChevronUp className="ml-auto size-4" />
+            {/* UPDATED: Profile button now links directly to the profile page */}
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild size="lg" disabled={isLoading}>
+                    <Link href="/profile">
+                        {isLoading ? (
+                            <>
+                            <Skeleton className="h-8 w-8 rounded-lg" />
+                            <div className="flex-1 space-y-1">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-3 w-32" />
+                            </div>
+                            </>
+                        ) : (
+                            <>
+                            <Avatar className="h-8 w-8 rounded-lg">
+                                <AvatarImage src={user?.avatar_url} alt={user?.username} />
+                                <AvatarFallback className="rounded-lg">{getInitials()}</AvatarFallback>
+                            </Avatar>
+                            <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">{user?.first_name || 'User'} {user?.last_name}</span>
+                                <span className="truncate text-xs">{user?.username}</span>
+                            </div>
+                            </>
+                        )}
+                    </Link>
                 </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                side="bottom"
-                align="end"
-                sideOffset={4}
-              >
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
+            </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

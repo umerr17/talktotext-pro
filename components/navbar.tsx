@@ -2,11 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
+import { Menu, LayoutDashboard } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navigation = [
@@ -18,6 +18,13 @@ const navigation = [
 export function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    // Check for token on component mount
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, [pathname]); // Re-check on path change to update UI after login/logout
 
   return (
     <nav className="sticky top-0 z-50 w-full glass border-b">
@@ -53,12 +60,23 @@ export function Navbar() {
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Get Started</Link>
-            </Button>
+            {isLoggedIn ? (
+                <Button asChild>
+                    <Link href="/dashboard">
+                        <LayoutDashboard className="mr-2 h-4 w-4"/>
+                        Go to Dashboard
+                    </Link>
+                </Button>
+            ) : (
+                <>
+                    <Button variant="ghost" asChild>
+                      <Link href="/login">Sign In</Link>
+                    </Button>
+                    <Button asChild>
+                      <Link href="/signup">Get Started</Link>
+                    </Button>
+                </>
+            )}
           </div>
 
           {/* Mobile Menu */}
@@ -75,7 +93,7 @@ export function Navbar() {
                 <div className="flex flex-col space-y-4 mt-8">
                   <div className="flex items-center justify-between">
                     <Link href="/" className="flex items-center space-x-2" onClick={() => setIsOpen(false)}>
-                      <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                       <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                         <span className="text-primary-foreground font-bold text-sm">TT</span>
                       </div>
                       <span className="font-bold text-lg">TalkToText Pro</span>
@@ -101,16 +119,27 @@ export function Navbar() {
                   </div>
 
                   <div className="flex flex-col space-y-3 pt-6 border-t border-border/50">
-                    <Button variant="ghost" asChild className="justify-start h-12 text-base">
-                      <Link href="/login" onClick={() => setIsOpen(false)}>
-                        Sign In
-                      </Link>
-                    </Button>
-                    <Button asChild className="h-12 text-base">
-                      <Link href="/signup" onClick={() => setIsOpen(false)}>
-                        Get Started
-                      </Link>
-                    </Button>
+                    {isLoggedIn ? (
+                        <Button asChild className="h-12 text-base">
+                            <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                                <LayoutDashboard className="mr-2 h-4 w-4"/>
+                                Go to Dashboard
+                            </Link>
+                        </Button>
+                    ) : (
+                        <>
+                            <Button variant="ghost" asChild className="justify-start h-12 text-base">
+                              <Link href="/login" onClick={() => setIsOpen(false)}>
+                                Sign In
+                              </Link>
+                            </Button>
+                            <Button asChild className="h-12 text-base">
+                              <Link href="/signup" onClick={() => setIsOpen(false)}>
+                                Get Started
+                              </Link>
+                            </Button>
+                        </>
+                    )}
                   </div>
                 </div>
               </SheetContent>

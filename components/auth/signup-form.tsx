@@ -46,39 +46,35 @@ export function SignupForm() {
     setIsLoading(true)
     setError("")
 
-    // Validation
     if (!formData.name || !formData.email || !formData.password) {
       setError("Please fill in all fields")
       setIsLoading(false)
       return
     }
-
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
       setIsLoading(false)
       return
     }
-
     if (!isPasswordValid) {
       setError("Password does not meet requirements")
       setIsLoading(false)
       return
     }
-
     if (!formData.agreeToTerms) {
       setError("Please agree to the terms and conditions")
       setIsLoading(false)
       return
     }
 
-    // ✅ Real API call to FastAPI backend
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: formData.email, // backend expects "username"
+          username: formData.email,
           password: formData.password,
+          full_name: formData.name, // <-- Sending full name
         }),
       })
 
@@ -89,7 +85,7 @@ export function SignupForm() {
       }
 
       // redirect to login after successful signup
-      router.push("/login")
+      router.push("/login?signup=success")
     } catch (err) {
       setError("Account creation failed. Please try again.")
     } finally {

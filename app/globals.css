@@ -4,79 +4,68 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color tokens to match TalkToText Pro design brief with indigo/blue theme */
-  --background: oklch(0.98 0.005 240); /* Light blue-tinted background */
-  --foreground: oklch(0.25 0.01 240); /* Dark blue-gray text */
-  --card: oklch(1 0 0 / 0.8); /* White cards with glassmorphism */
-  --card-foreground: oklch(0.25 0.01 240);
-  --popover: oklch(1 0 0 / 0.9);
-  --popover-foreground: oklch(0.25 0.01 240);
-  --primary: oklch(0.6 0.15 240); /* Indigo primary color */
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.25 0.08 240); /* Deep blue secondary */
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.92 0.01 240); /* Light blue-gray muted */
-  --muted-foreground: oklch(0.45 0.01 240);
-  --accent: oklch(0.25 0.08 240); /* Blue accent */
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.85 0.01 240); /* Light blue-gray border */
-  --input: oklch(1 0 0);
-  --ring: oklch(0.6 0.15 240 / 0.5); /* Primary color with transparency */
-  --chart-1: oklch(0.6 0.15 240);
-  --chart-2: oklch(0.25 0.08 240);
-  --chart-3: oklch(0.75 0.1 240);
-  --chart-4: oklch(0.85 0.05 240);
-  --chart-5: oklch(0.9 0.02 240);
-  --radius: 0.75rem; /* Increased radius for modern look */
-  --sidebar: oklch(1 0 0 / 0.9); /* Glassmorphism sidebar */
-  --sidebar-foreground: oklch(0.25 0.01 240);
-  --sidebar-primary: oklch(0.6 0.15 240);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.25 0.08 240);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.85 0.01 240);
-  --sidebar-ring: oklch(0.6 0.15 240 / 0.5);
+  /* Converted to HEX for maximum compatibility with html2canvas */
+  --background: #f9f9ff;
+  --foreground: #3f3f46;
+  --card: rgba(255, 255, 255, 0.8);
+  --card-foreground: #3f3f46;
+  --popover: rgba(255, 255, 255, 0.9);
+  --popover-foreground: #3f3f46;
+  --primary: #5e60e1;
+  --primary-foreground: #f9fafb;
+  --secondary: #282a71;
+  --secondary-foreground: #f9fafb;
+  --muted: #e6e6f2;
+  --muted-foreground: #71717a;
+  --accent: #eef0ff;
+  --accent-foreground: #3f3f46;
+  --destructive: #e5484d;
+  --destructive-foreground: #f9fafb;
+  --border: #d9d9e6;
+  --input: #ffffff;
+  --ring: rgba(94, 96, 225, 0.5);
+  --radius: 0.75rem;
+  --sidebar: rgba(255, 255, 255, 0.9);
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: #5e60e1;
+  --sidebar-primary-foreground: #f9fafb;
+  --sidebar-accent: #eef0ff;
+  --sidebar-accent-foreground: #3f3f46;
+  --sidebar-border: #d9d9e6;
+  --sidebar-ring: rgba(94, 96, 225, 0.5);
 }
 
 .dark {
-  /* Updated dark mode colors to maintain indigo/blue theme */
-  --background: oklch(0.08 0.01 240); /* Very dark blue background */
-  --foreground: oklch(0.95 0.005 240); /* Light blue-tinted text */
-  --card: oklch(0.12 0.01 240 / 0.8); /* Dark cards with glassmorphism */
-  --card-foreground: oklch(0.95 0.005 240);
-  --popover: oklch(0.12 0.01 240 / 0.9);
-  --popover-foreground: oklch(0.95 0.005 240);
-  --primary: oklch(0.65 0.15 240); /* Brighter indigo for dark mode */
-  --primary-foreground: oklch(0.08 0.01 240);
-  --secondary: oklch(0.18 0.02 240); /* Dark blue-gray secondary */
-  --secondary-foreground: oklch(0.95 0.005 240);
-  --muted: oklch(0.18 0.02 240);
-  --muted-foreground: oklch(0.65 0.01 240);
-  --accent: oklch(0.18 0.02 240);
-  --accent-foreground: oklch(0.95 0.005 240);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.95 0.005 240);
-  --border: oklch(0.18 0.02 240);
-  --input: oklch(0.18 0.02 240);
-  --ring: oklch(0.65 0.15 240 / 0.5);
-  --chart-1: oklch(0.65 0.15 240);
-  --chart-2: oklch(0.55 0.12 200);
-  --chart-3: oklch(0.75 0.1 260);
-  --chart-4: oklch(0.45 0.08 220);
-  --chart-5: oklch(0.35 0.06 240);
-  --sidebar: oklch(0.12 0.01 240 / 0.9);
-  --sidebar-foreground: oklch(0.95 0.005 240);
-  --sidebar-primary: oklch(0.65 0.15 240);
-  --sidebar-primary-foreground: oklch(0.08 0.01 240);
-  --sidebar-accent: oklch(0.18 0.02 240);
-  --sidebar-accent-foreground: oklch(0.95 0.005 240);
-  --sidebar-border: oklch(0.18 0.02 240);
-  --sidebar-ring: oklch(0.65 0.15 240 / 0.5);
+  /* Converted dark mode to HEX */
+  --background: #13141f;
+  --foreground: #f2f2f9;
+  --card: rgba(28, 29, 43, 0.8);
+  --card-foreground: #f2f2f9;
+  --popover: rgba(28, 29, 43, 0.9);
+  --popover-foreground: #f2f2f9;
+  --primary: #8082ff;
+  --primary-foreground: #13141f;
+  --secondary: #2d2e3e;
+  --secondary-foreground: #f2f2f9;
+  --muted: #2d2e3e;
+  --muted-foreground: #a1a1aa;
+  --accent: #2d2e3e;
+  --accent-foreground: #f2f2f9;
+  --destructive: #e5484d;
+  --destructive-foreground: #f2f2f9;
+  --border: #2d2e3e;
+  --input: #2d2e3e;
+  --ring: rgba(128, 130, 255, 0.5);
+  --sidebar: rgba(28, 29, 43, 0.9);
+  --sidebar-foreground: #f2f2f9;
+  --sidebar-primary: #8082ff;
+  --sidebar-primary-foreground: #13141f;
+  --sidebar-accent: #2d2e3e;
+  --sidebar-accent-foreground: #f2f2f9;
+  --sidebar-border: #2d2e3e;
+  --sidebar-ring: rgba(128, 130, 255, 0.5);
 }
 
-/* Updated font configuration to use DM Sans as specified in design brief */
 @theme inline {
   --font-sans: "DM Sans", var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -125,7 +114,6 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Added glassmorphism utility classes for modern design */
   .glass {
     @apply backdrop-blur-md bg-card/80 border border-border/50;
   }
