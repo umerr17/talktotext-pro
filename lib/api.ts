@@ -26,6 +26,21 @@ export interface DashboardStats {
     accuracy_rate: number;
 }
 
+export interface WeeklyActivity {
+  day: string;
+  meetings: number;
+}
+
+export interface MeetingType {
+  name: string;
+  value: number;
+}
+
+export interface ProcessingSpeed {
+  time: string;
+  count: number;
+}
+
 export async function authFetch(path: string, options: RequestInit = {}) {
   const token = localStorage.getItem("token")
   if (!token) {
@@ -83,6 +98,9 @@ export const getOngoingTasks = async (): Promise<any[]> => authFetch("/tasks/ong
 export const deleteTask = (taskId: string): Promise<void> => authFetch(`/tasks/${taskId}`, { method: "DELETE" });
 
 export const getDashboardStats = (): Promise<DashboardStats> => authFetch("/dashboard/stats");
+export const getWeeklyActivity = (): Promise<WeeklyActivity[]> => authFetch("/dashboard/weekly-activity");
+export const getMeetingTypes = (): Promise<MeetingType[]> => authFetch("/dashboard/meeting-types");
+export const getProcessingSpeed = (): Promise<ProcessingSpeed[]> => authFetch("/dashboard/processing-speed");
 
 // === Profile Functions ===
 export const getUserProfile = (): Promise<UserProfile> => authFetch("/profile");

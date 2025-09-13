@@ -73,8 +73,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`font-sans ${dmSans.variable} ${GeistMono.variable} antialiased`}>
-        <Suspense fallback={null}>
+      <body className={`font-sans ${dmSans.variable} ${GeistMono.variable} antialiased overflow-x-hidden`}>        <Suspense fallback={null}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
             {children}
           </ThemeProvider>

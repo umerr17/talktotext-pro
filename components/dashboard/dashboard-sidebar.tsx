@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
   Sidebar,
@@ -58,10 +59,15 @@ export function DashboardSidebar() {
     <Sidebar variant="inset">
       <SidebarHeader>
         <div className="flex items-center space-x-2 px-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">TT</span>
-          </div>
-          <span className="font-bold text-lg">TalkToText Pro</span>
+          <Link href="/" className="flex items-center space-x-2">
+              <Image
+                src="/logo.png"
+                alt="TalkToText Pro"
+                width={200}
+                height={200}
+                className="rounded-lg"
+              />
+            </Link>
         </div>
       </SidebarHeader>
       <SidebarContent>

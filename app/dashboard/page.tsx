@@ -1,6 +1,4 @@
-"use client"
-
-import { DashboardStats } from "@/components/dashboard/dashboard-stats"
+import type { Metadata } from "next"
 import { UploadZone } from "@/components/dashboard/upload-zone"
 import { MeetingHistory } from "@/components/dashboard/meeting-history"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,98 +6,92 @@ import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
-import { Plus, Sparkles, LogOut } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { Plus, Sparkles } from "lucide-react"
+import { MesmerizingStats } from "@/components/dashboard/mesmerizing-stats"
+import { FloatingElements } from "@/components/dashboard/floating-elements"
+import { MesmerizingCharts } from "@/components/dashboard/mesmerizing-charts"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/theme-toggle" // 👈 I've added this import
 
-const handleLogout = () => {
-    localStorage.removeItem("token");
-    // Use window.location to force a full page refresh and clear all state
-    window.location.href = "/login";
-  };
+export const metadata: Metadata = {
+  title: "Dashboard - TalkToText Pro",
+  description: "Manage your meeting recordings and AI-generated notes in your TalkToText Pro dashboard.",
+}
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <header className="flex h-16 shrink-0 items-center gap-2">
-        <div className="flex items-center gap-2 px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbPage>Dashboard</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
-        <div className="ml-auto flex items-center gap-2 px-4">
-            <ThemeToggle />
-            <Button
-      variant="ghost"
-      onClick={handleLogout}
-      className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-    >
-      <LogOut className="h-5 w-5" />
-      <span>Sign out</span>
-    </Button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 space-y-6 p-4 pt-0">
-        {/* Welcome Section */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
-            <p className="text-muted-foreground">Transform your meeting recordings into structured notes with AI</p>
+    <>
+      <FloatingElements />
+      <div className="relative space-y-8 z-10">
+        {/* Header */}
+        {/* 👇 I've modified the header below */}
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-          <Button size="lg" className="h-12" asChild>
-            <Link href="/dashboard/upload">
-                <Plus className="mr-2 h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="flex-1 space-y-8 p-4 pt-0">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent">
+                Welcome back!
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Transform your meeting recordings into structured notes with AI
+              </p>
+            </div>
+            <Button
+              asChild
+              size="lg"
+              className="h-14 px-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300 group"
+            >
+              <Link href="/dashboard/upload">
+                <Plus className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
                 New Upload
-            </Link>
-          </Button>
-        </div>
+              </Link>
+            </Button>
+          </div>
 
-        {/* Stats */}
-        <DashboardStats />
+          <MesmerizingStats />
 
-        {/* Quick Actions */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Quick Upload
+          <MesmerizingCharts />
+
+          {/* Combined Upload and Activity Zone */}
+          <Card className="glass border-0 bg-gradient-to-br from-card/90 via-card/70 to-card/50 backdrop-blur-xl hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 group overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="relative z-10">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+                Quick Upload & Activity
               </CardTitle>
-              <CardDescription>
-                Upload a new meeting recording to get started with AI-powered transcription
+              <CardDescription className="text-base">
+                Upload a new recording to get started. Ongoing tasks will appear below.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="relative z-10">
               <UploadZone />
             </CardContent>
           </Card>
 
-          <Card className="glass">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Your latest meeting processing activity</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {/* This section is now handled by the persistent UploadZone component */}
-              <div className="text-center text-muted-foreground py-8">
-                <p>Ongoing tasks will appear in the upload zone below.</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Meeting History */}
+          <MeetingHistory />
         </div>
-
-        {/* Meeting History */}
-        <MeetingHistory />
       </div>
-    </div>
+    </>
   )
 }
