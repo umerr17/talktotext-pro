@@ -1,4 +1,7 @@
+"use client" // 👈 This line is added
+
 import type { Metadata } from "next"
+import Link from "next/link"
 import { UploadZone } from "@/components/dashboard/upload-zone"
 import { MeetingHistory } from "@/components/dashboard/meeting-history"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,25 +9,27 @@ import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
-import { Plus, Sparkles } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip" // 👈 Added
+import { Plus, Sparkles, LogOut } from "lucide-react" // 👈 Added LogOut icon
 import { MesmerizingStats } from "@/components/dashboard/mesmerizing-stats"
 import { FloatingElements } from "@/components/dashboard/floating-elements"
 import { MesmerizingCharts } from "@/components/dashboard/mesmerizing-charts"
-import Link from "next/link"
-import { ThemeToggle } from "@/components/theme-toggle" // 👈 I've added this import
+import { ThemeToggle } from "@/components/theme-toggle"
 
-export const metadata: Metadata = {
-  title: "Dashboard - TalkToText Pro",
-  description: "Manage your meeting recordings and AI-generated notes in your TalkToText Pro dashboard.",
-}
+
 
 export default function DashboardPage() {
+  // 👇 Added sign-out logic
+  const handleLogout = () => {
+    localStorage.removeItem("token") 
+    window.location.href = "/login" 
+  }
+
   return (
     <>
       <FloatingElements />
       <div className="relative space-y-8 z-10">
         {/* Header */}
-        {/* 👇 I've modified the header below */}
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
@@ -37,8 +42,20 @@ export default function DashboardPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          {/* 👇 Added the Sign Out button here */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  <span className="sr-only">Sign Out</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Sign Out</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </header>
 
