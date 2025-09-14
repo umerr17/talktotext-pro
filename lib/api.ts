@@ -7,6 +7,8 @@ export interface Meeting {
   transcript: string;
   notes: string;
   created_at: string;
+  original_language: string | null;
+  transcript_en: string | null;
 }
 
 export interface UserProfile {
@@ -93,10 +95,17 @@ export const getMeetings = (): Promise<Meeting[]> => authFetch("/meetings");
 export const getMeetingDetails = (meetingId: string): Promise<Meeting> => authFetch(`/meetings/${meetingId}`);
 export const deleteMeeting = (meetingId: number): Promise<void> => authFetch(`/meetings/${meetingId}`, { method: "DELETE" });
 
+// --- NEW: Function to share meeting by email ---
+export const shareMeetingByEmail = (meetingId: string, recipient_email: string): Promise<{ message: string }> => {
+    return authFetch(`/meetings/${meetingId}/share`, {
+        method: "POST",
+        body: JSON.stringify({ recipient_email }),
+    });
+};
+
 // === Task Functions ===
 export const getOngoingTasks = async (): Promise<any[]> => authFetch("/tasks/ongoing");
 export const deleteTask = (taskId: string): Promise<void> => authFetch(`/tasks/${taskId}`, { method: "DELETE" });
-
 export const getDashboardStats = (): Promise<DashboardStats> => authFetch("/dashboard/stats");
 export const getWeeklyActivity = (): Promise<WeeklyActivity[]> => authFetch("/dashboard/weekly-activity");
 export const getMeetingTypes = (): Promise<MeetingType[]> => authFetch("/dashboard/meeting-types");

@@ -1,4 +1,4 @@
-"use client" // 👈 This line is added
+"use client"
 
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -10,7 +10,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip" // 👈 Added
-import { Plus, Sparkles, LogOut } from "lucide-react" // 👈 Added LogOut icon
+import { Plus, Sparkles, LogOut } from "lucide-react"
 import { MesmerizingStats } from "@/components/dashboard/mesmerizing-stats"
 import { FloatingElements } from "@/components/dashboard/floating-elements"
 import { MesmerizingCharts } from "@/components/dashboard/mesmerizing-charts"
@@ -19,7 +19,6 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 
 export default function DashboardPage() {
-  // 👇 Added sign-out logic
   const handleLogout = () => {
     localStorage.removeItem("token") 
     window.location.href = "/login" 
@@ -42,7 +41,6 @@ export default function DashboardPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          {/* 👇 Added the Sign Out button here */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Tooltip>
