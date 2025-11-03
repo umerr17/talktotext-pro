@@ -162,15 +162,17 @@ export function Pricing() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h4 className="font-semibold text-foreground mb-2">Does it work with different languages?</h4>
+                <h4 className="font-semibold text-foreground mb-2">How does the free trial work?</h4>
                 <p className="text-sm text-muted-foreground">
-                  Yes! If your meeting isn’t in English, TalkToText Pro automatically translates the content to English before generating notes.
+                  Start with a 14-day free trial of our Professional plan. No credit card required. You can cancel
+                  anytime during the trial period.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-foreground mb-2">How fast does it process a meeting?</h4>
+                <h4 className="font-semibold text-foreground mb-2">Can I change plans anytime?</h4>
                 <p className="text-sm text-muted-foreground">
-                  A 30-minute recording typically takes 1–2 minutes to process completely.
+                  Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately and we'll
+                  prorate your billing.
                 </p>
               </div>
               <div>

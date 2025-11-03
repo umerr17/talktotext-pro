@@ -1,3 +1,4 @@
+// lib/api.ts
 export interface Meeting {
   id: number;
   user_id: number;
@@ -40,12 +41,6 @@ export interface MeetingType {
 export interface ProcessingSpeed {
   time: string;
   count: number;
-}
-
-// --- NEW: Interface for Link Upload ---
-export interface LinkUploadRequest {
-  url: string;
-  filename?: string;
 }
 
 export async function authFetch(path: string, options: RequestInit = {}) {
@@ -99,14 +94,6 @@ export async function authFetch(path: string, options: RequestInit = {}) {
 export const getMeetings = (): Promise<Meeting[]> => authFetch("/meetings");
 export const getMeetingDetails = (meetingId: string): Promise<Meeting> => authFetch(`/meetings/${meetingId}`);
 export const deleteMeeting = (meetingId: number): Promise<void> => authFetch(`/meetings/${meetingId}`, { method: "DELETE" });
-
-// --- NEW: Function to upload a link ---
-export const uploadLink = (linkData: LinkUploadRequest): Promise<{ task_id: string, status: string }> => {
-    return authFetch("/upload-link", {
-        method: "POST",
-        body: JSON.stringify(linkData),
-    });
-};
 
 // --- NEW: Function to share meeting by email ---
 export const shareMeetingByEmail = (meetingId: string, recipient_email: string): Promise<{ message: string }> => {
