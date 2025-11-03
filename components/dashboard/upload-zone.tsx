@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, File, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, File, X, CheckCircle, AlertCircle, Link as LinkIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { getOngoingTasks, deleteTask } from "@/lib/api";
+import { getOngoingTasks, deleteTask, uploadLink } from "@/lib/api";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 interface UploadFile {
   id: string;
@@ -47,6 +49,8 @@ const SmoothedProgress = ({ targetProgress }: { targetProgress: number }) => {
 
 export function UploadZone() {
   const [files, setFiles] = useState<UploadFile[]>([]);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [isLinkLoading, setIsLinkLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -175,6 +179,53 @@ export function UploadZone() {
     }
   };
   
+  // --- NEW: Handler for submitting a link ---
+  const handleLinkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!linkUrl) return;
+
+    setIsLinkLoading(true);
+    
+    // Create a temporary file object for display
+    let tempFilename = "Processing Link...";
+    try {
+        // Try to get a nice name from the URL
+        const url = new URL(linkUrl);
+        tempFilename = url.hostname + (url.pathname.length > 1 ? url.pathname : "");
+    } catch {
+        tempFilename = linkUrl.length > 50 ? linkUrl.substring(0, 50) + "..." : linkUrl;
+    }
+
+    const tempId = Math.random().toString(36).substring(2, 9);
+    const linkFile: UploadFile = {
+        id: tempId,
+        file: { name: tempFilename, size: 0 },
+        status: "pending",
+        progress: 0,
+        details: "Sending link to server...",
+    };
+    setFiles((prev) => [linkFile, ...prev]);
+
+    try {
+        const res = await uploadLink({ url: linkUrl, filename: tempFilename });
+        
+        // Update the temporary file with the real task ID
+        setFiles((prev) =>
+            prev.map((f) => (f.id === tempId ? { ...f, id: res.task_id, status: "pending", details: "Task queued..." } : f))
+        );
+        
+        pollProgress(res.task_id); // Start polling
+        setLinkUrl(""); // Clear input
+    } catch (err: any) {
+        const errorDetail = err.message || "Failed to process link.";
+        setFiles((prev) =>
+            prev.map((f) => (f.id === tempId ? { ...f, status: "error", details: errorDetail } : f))
+        );
+    } finally {
+        setIsLinkLoading(false);
+    }
+  };
+
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
       acceptedFiles.forEach(handleUpload);
       fileRejections.forEach((rejection) => {
@@ -238,6 +289,41 @@ export function UploadZone() {
             <Button variant="outline">Choose Files</Button>
             <p className="text-xs text-muted-foreground mt-4">Supports MP3, WAV, M4A, MP4, MOV (max 1GB)</p>
           </div>
+          
+          {/* --- NEW: Link Input Section --- */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                Or submit a link
+                </span>
+            </div>
+          </div>
+
+          <form onSubmit={handleLinkSubmit} className="flex gap-3">
+            <div className="relative flex-1">
+                <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="url"
+                    placeholder="Paste a meeting link (e.g., Google Meet, Zoom, YouTube)..."
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="pl-9 h-11"
+                    disabled={isLinkLoading}
+                />
+            </div>
+            <Button type="submit" className="h-11" disabled={isLinkLoading || !linkUrl}>
+                {isLinkLoading ? (
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                    "Submit"
+                )}
+            </Button>
+          </form>
+          {/* --- END: Link Input Section --- */}
+
         </CardContent>
       </Card>
 
